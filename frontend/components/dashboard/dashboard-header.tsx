@@ -31,6 +31,12 @@ export function DashboardHeader() {
         </Link>
         <nav className="flex items-center gap-3">
           <Link
+            href="/dashboard/analytics"
+            className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
+          >
+            Analytics
+          </Link>
+          <Link
             href="/"
             className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
           >

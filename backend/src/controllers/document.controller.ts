@@ -6,6 +6,7 @@ import { generateSummary, streamDocumentAnswerToResponse } from '../services/ai/
 import { extractTextFromBuffer } from '../utils/extract-text';
 import { isValidObjectId } from '../utils/validators';
 import logger from '../utils/logger';
+import * as activityService from '../services/activity.service';
 
 export async function upload(req: Request, res: Response): Promise<void> {
   try {
@@ -36,6 +37,7 @@ export async function upload(req: Request, res: Response): Promise<void> {
       return;
     }
     const populated = await Document.findById(doc._id).populate('uploadedBy', 'name email avatar').lean();
+    await activityService.recordActivity(user._id.toString());
     res.status(201).json({ success: true, data: populated || doc });
   } catch (error) {
     logger.error('document upload error:', error);
@@ -58,6 +60,7 @@ export async function summarizeFile(req: Request, res: Response): Promise<void> 
     await fs.unlink(file.path).catch(() => {});
     const text = await extractTextFromBuffer(buffer, file.mimetype);
     const summary = await generateSummary(file.originalname.replace(/\.[^.]+$/i, '') || 'Document', text);
+    await activityService.recordActivity(req.user!._id.toString());
     res.json({ success: true, data: { summary } });
   } catch (error) {
     logger.error('summarize-file error:', error);
@@ -147,6 +150,7 @@ export async function summarize(req: Request, res: Response): Promise<void> {
     const text = await extractTextFromBuffer(docMeta.buffer, docMeta.mimeType);
     const summary = await generateSummary(docMeta.title, text);
     await documentService.updateDocumentSummary(req.params.id, user._id.toString(), summary);
+    await activityService.recordActivity(user._id.toString());
     res.json({ success: true, data: { summary } });
   } catch (error) {
     logger.error('document summarize error:', error);

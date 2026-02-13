@@ -75,7 +75,15 @@ export default function DashboardPage() {
           </Link>
         </div>
 
-        <div className="mt-12 pt-8 border-t border-dashed border-neutral-300 max-w-4xl mx-auto">
+        <div className="mt-8 flex justify-center">
+          <Link
+            href="/dashboard/analytics"
+            className="inline-flex items-center gap-2 text-sm font-medium text-neutral-600 hover:text-neutral-900"
+          >
+            View your activity & analytics
+          </Link>
+        </div>
+        <div className="mt-8 pt-8 border-t border-dashed border-neutral-300 max-w-4xl mx-auto">
           <p className="text-center text-neutral-400 font-hand text-lg">
             More features on the way — stay tuned.
           </p>

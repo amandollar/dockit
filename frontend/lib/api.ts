@@ -140,6 +140,42 @@ export async function uploadAvatarPhoto(
   return json as { success: true; data: User & { workspaces?: string[] } };
 }
 
+/** GET /api/analytics/me – streak, activity grid, doc/workspace counts. */
+export interface AnalyticsData {
+  streak: number;
+  lastActiveDate: string | null;
+  days: Array<{ date: string; count: number }>;
+  totalDocuments: number;
+  totalWorkspaces: number;
+}
+export async function getAnalytics(
+  tokenOrAuth: string | AuthHelpers
+): Promise<
+  | { success: true; data: AnalyticsData }
+  | { success: false; error: { code: string; message: string } }
+> {
+  type Result = { success: true; data: AnalyticsData } | { success: false; error: { code: string; message: string } };
+  const run = async (token: string): Promise<Result> => {
+    let res: Response;
+    try {
+      res = await fetch(`${API_BASE}/api/analytics/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    } catch (err) {
+      const message =
+        err instanceof TypeError && err.message === "Failed to fetch"
+          ? "Could not reach the server."
+          : err instanceof Error ? err.message : "Network error";
+      return { success: false, error: { code: "NETWORK_ERROR", message } };
+    }
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) return { success: false, error: json?.error ?? { code: "REQUEST_FAILED", message: res.statusText } };
+    return { success: true, data: json.data };
+  };
+  if (typeof tokenOrAuth === "string") return run(tokenOrAuth);
+  return withAuthRetry(run, tokenOrAuth);
+}
+
 /** POST /api/auth/refresh with { refreshToken } */
 export async function refreshAccessToken(refreshToken: string): Promise<
   | { success: true; data: { accessToken: string; expiresIn: number } }

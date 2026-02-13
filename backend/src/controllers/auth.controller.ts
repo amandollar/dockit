@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import * as authService from '../services/auth.service';
+import * as activityService from '../services/activity.service';
 import User from '../models/User';
 import fileStorageService from '../services/file-storage.service';
 import * as cloudinaryService from '../services/cloudinary.service';
@@ -52,6 +53,7 @@ export async function googleCallback(req: Request, res: Response): Promise<void>
     }
     const profile = await authService.getGoogleUserFromCode(code);
     const user = await authService.createOrGetUser(profile);
+    await activityService.recordActivity(user._id.toString());
     const tokens = authService.generateTokens(user);
     const avatarUrl = await resolveAvatarUrl(user.avatar);
     res.json({
