@@ -1,3 +1,4 @@
+import fs from 'fs/promises';
 import { Request, Response } from 'express';
 import Document from '../models/Document';
 import * as documentService from '../services/document.service';
@@ -39,6 +40,28 @@ export async function upload(req: Request, res: Response): Promise<void> {
   } catch (error) {
     logger.error('document upload error:', error);
     res.status(500).json({ success: false, error: { code: 'SERVER_ERROR', message: 'Upload failed' } });
+  }
+}
+
+export async function summarizeFile(req: Request, res: Response): Promise<void> {
+  try {
+    if (!req.user) {
+      res.status(401).json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Not authenticated' } });
+      return;
+    }
+    const file = req.file;
+    if (!file?.path) {
+      res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'A file is required (PDF or text)' } });
+      return;
+    }
+    const buffer = await fs.readFile(file.path);
+    await fs.unlink(file.path).catch(() => {});
+    const text = await extractTextFromBuffer(buffer, file.mimetype);
+    const summary = await generateSummary(file.originalname.replace(/\.[^.]+$/i, '') || 'Document', text);
+    res.json({ success: true, data: { summary } });
+  } catch (error) {
+    logger.error('summarize-file error:', error);
+    res.status(500).json({ success: false, error: { code: 'SERVER_ERROR', message: 'Summarization failed' } });
   }
 }
 

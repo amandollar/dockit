@@ -500,6 +500,40 @@ export async function summarizeDocument(
   return withAuthRetry(run, tokenOrAuth);
 }
 
+/** POST /api/documents/summarize-file – one-off upload, get AI summary (no workspace). */
+export async function summarizeFile(
+  tokenOrAuth: string | AuthHelpers,
+  file: File
+): Promise<
+  | { success: true; data: { summary: string } }
+  | { success: false; error: { code: string; message: string } }
+> {
+  type Result = { success: true; data: { summary: string } } | { success: false; error: { code: string; message: string } };
+  const run = async (token: string): Promise<Result> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    let res: Response;
+    try {
+      res = await fetch(`${API_BASE}/api/documents/summarize-file`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+    } catch (err) {
+      const message =
+        err instanceof TypeError && err.message === "Failed to fetch"
+          ? "Could not reach the server."
+          : err instanceof Error ? err.message : "Network error";
+      return { success: false, error: { code: "NETWORK_ERROR", message } };
+    }
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) return { success: false, error: json?.error ?? { code: "REQUEST_FAILED", message: res.statusText } };
+    return { success: true, data: { summary: (json as { data?: { summary?: string } }).data?.summary ?? "" } };
+  };
+  if (typeof tokenOrAuth === "string") return run(tokenOrAuth);
+  return withAuthRetry(run, tokenOrAuth);
+}
+
 /** POST /api/documents/:id/ask – streamed answer (Vercel AI SDK + Gemini). Reads full response as text. */
 export async function askDocument(
   tokenOrAuth: string | AuthHelpers,

@@ -16,6 +16,14 @@ router.post('/upload', (req, res, next) => {
   });
 }, documentController.upload);
 
+// One-off summarize: upload a file, get AI summary (no workspace, no storage)
+router.post('/summarize-file', (req, res, next) => {
+  upload.single('file')(req, res, (err: unknown) => {
+    if (err) return next(err);
+    next();
+  });
+}, documentController.summarizeFile);
+
 // List documents in a workspace: GET /documents/workspace/:workspaceId
 router.get('/workspace/:workspaceId', validateParamId('workspaceId'), documentController.list);
 

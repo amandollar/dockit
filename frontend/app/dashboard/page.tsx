@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { Sticker } from "@/components/ui/sticker";
-import { FileText, FolderOpen, ArrowRight } from "lucide-react";
+import { FileText, FolderOpen, ArrowRight, Sparkles } from "lucide-react";
 
 export default function DashboardPage() {
   const { user, isAuthenticated, loading } = useAuth();
@@ -56,17 +56,23 @@ export default function DashboardPage() {
               </p>
             </Sticker>
           </Link>
-          <Sticker className="min-h-[180px] flex flex-col" rotation={1} color="blue" hasTape tapeVariant="corner" delay={0.2}>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-lg bg-white/60 flex items-center justify-center border border-neutral-200/80">
-                <FileText className="w-6 h-6 text-blue-800/70" />
+          <Link href="/dashboard/summarize">
+            <Sticker className="min-h-[180px] flex flex-col cursor-pointer hover:scale-[1.02] transition-transform" rotation={1} color="blue" hasTape tapeVariant="corner" delay={0.2}>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-lg bg-white/60 flex items-center justify-center border border-neutral-200/80">
+                  <FileText className="w-6 h-6 text-blue-800/70" />
+                </div>
+                <h2 className="font-bold text-xl text-neutral-900">Documents</h2>
               </div>
-              <h2 className="font-bold text-xl text-neutral-900">Documents</h2>
-            </div>
-            <p className="font-hand text-lg text-neutral-700 flex-1">
-              Upload PDFs and docs. AI summaries and search next.
-            </p>
-          </Sticker>
+              <p className="font-hand text-lg text-neutral-700 flex-1">
+                Upload docs, get AI summaries and ask questions. Full-text search next.
+              </p>
+              <p className="flex items-center gap-1 text-neutral-600 text-sm mt-2 font-medium">
+                <Sparkles className="w-4 h-4" />
+                Summarize a PDF
+              </p>
+            </Sticker>
+          </Link>
         </div>
 
         <div className="mt-12 pt-8 border-t border-dashed border-neutral-300 max-w-4xl mx-auto">
