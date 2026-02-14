@@ -13,15 +13,22 @@ export function CTA() {
                 <p className="text-xl text-neutral-600 mb-10 max-w-2xl mx-auto">
                     Join the institutions using DOCIT to transform archives into intelligence.
                 </p>
-                <div className="flex justify-center gap-4">
+                <div className="flex flex-col sm:flex-row justify-center gap-4">
                     {isAuthenticated ? (
                         <Link href="/dashboard">
                             <Button size="lg" className="h-14 px-10 text-lg">Go to Dashboard</Button>
                         </Link>
                     ) : (
-                        <Button size="lg" className="h-14 px-10 text-lg" onClick={loginWithGoogle} disabled={loading}>
-                            Start Free Trial
-                        </Button>
+                        <>
+                            <Button size="lg" className="h-14 px-10 text-lg" onClick={loginWithGoogle} disabled={loading}>
+                                Start free
+                            </Button>
+                            <Link href="/demo">
+                                <Button variant="outline" size="lg" className="h-14 px-10 text-lg">
+                                    Try the demo
+                                </Button>
+                            </Link>
+                        </>
                     )}
                 </div>
             </div>

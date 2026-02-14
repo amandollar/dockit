@@ -4,8 +4,40 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
-import { Sticker } from "@/components/ui/sticker";
-import { FileText, FolderOpen, ArrowRight, Sparkles } from "lucide-react";
+import { FileText, FolderOpen, ArrowRight, BarChart3 } from "lucide-react";
+
+const cards = [
+  {
+    href: "/dashboard/workspaces",
+    title: "Workspaces",
+    description: "Create workspaces and invite your team. Organize documents by project.",
+    cta: "View workspaces",
+    icon: FolderOpen,
+    iconBg: "bg-amber-100",
+    iconColor: "text-amber-700",
+    borderColor: "hover:border-amber-200",
+  },
+  {
+    href: "/dashboard/summarize",
+    title: "Summarize",
+    description: "Upload a PDF or doc and get an AI summary you can copy in seconds.",
+    cta: "Summarize a document",
+    icon: FileText,
+    iconBg: "bg-blue-100",
+    iconColor: "text-blue-700",
+    borderColor: "hover:border-blue-200",
+  },
+  {
+    href: "/dashboard/analytics",
+    title: "Analytics",
+    description: "Track your activity streak and see how often you're in the flow.",
+    cta: "View analytics",
+    icon: BarChart3,
+    iconBg: "bg-violet-100",
+    iconColor: "text-violet-700",
+    borderColor: "hover:border-violet-200",
+  },
+];
 
 export default function DashboardPage() {
   const { user, isAuthenticated, loading } = useAuth();
@@ -18,7 +50,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-[#FDFBF7] flex items-center justify-center">
+      <main className="min-h-screen bg-neutral-50 flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-neutral-300 border-t-neutral-900 rounded-full animate-spin" />
       </main>
     );
@@ -27,67 +59,60 @@ export default function DashboardPage() {
   if (!isAuthenticated || !user) return null;
 
   return (
-    <main className="min-h-screen bg-[#FDFBF7]">
+    <main className="min-h-screen bg-neutral-50">
       <DashboardHeader />
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16 max-w-6xl">
-        <div className="text-center max-w-2xl mx-auto mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-neutral-900 mb-2">
-            Welcome, <span className="font-hand text-4xl md:text-5xl text-neutral-800">{user.name}</span>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14 max-w-6xl">
+        {/* Welcome block */}
+        <div className="mb-10 lg:mb-12">
+          <p className="text-sm font-medium text-neutral-500 uppercase tracking-wider mb-1">
+            Dashboard
+          </p>
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-neutral-900">
+            Welcome back,{" "}
+            <span className="relative inline-block font-hand text-3xl md:text-4xl text-neutral-800">
+              <span className="relative z-10">{user.name?.split(" ")[0] ?? user.name}</span>
+              <span className="absolute bottom-1 left-0 right-0 h-3 bg-amber-200/80 -z-10 rotate-[-0.5deg] rounded-sm" aria-hidden />
+            </span>
           </h1>
-          <p className="text-xl text-neutral-600">
-            Your document workspace. Upload, organize, and understand your files.
+          <p className="text-neutral-600 mt-2 max-w-xl">
+            Upload docs, get AI summaries, and ask questions—all in one place.
           </p>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2 max-w-4xl mx-auto">
-          <Link href="/dashboard/workspaces">
-            <Sticker className="min-h-[180px] flex flex-col cursor-pointer hover:scale-[1.02] transition-transform" rotation={-1} color="yellow" hasTape delay={0.1}>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-lg bg-white/60 flex items-center justify-center border border-neutral-200/80">
-                  <FolderOpen className="w-6 h-6 text-yellow-800/70" />
+        {/* Action cards */}
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {cards.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`group flex flex-col p-6 rounded-2xl bg-white border-2 border-neutral-200 ${item.borderColor} shadow-sm hover:shadow-lg transition-all duration-200 text-left`}
+              >
+                <div className="flex items-center gap-4 mb-4">
+                  <span
+                    className={`flex w-12 h-12 items-center justify-center rounded-xl ${item.iconBg} ${item.iconColor} transition-transform group-hover:scale-105`}
+                  >
+                    <Icon className="w-6 h-6" />
+                  </span>
+                  <h2 className="font-semibold text-lg text-neutral-900">{item.title}</h2>
                 </div>
-                <h2 className="font-bold text-xl text-neutral-900">Workspaces</h2>
-              </div>
-              <p className="font-hand text-lg text-neutral-700 flex-1">
-                Create workspaces and invite your team. Organize documents by project.
-              </p>
-              <p className="flex items-center gap-1 text-neutral-600 text-sm mt-2 font-medium">
-                View workspaces <ArrowRight className="w-4 h-4" />
-              </p>
-            </Sticker>
-          </Link>
-          <Link href="/dashboard/summarize">
-            <Sticker className="min-h-[180px] flex flex-col cursor-pointer hover:scale-[1.02] transition-transform" rotation={1} color="blue" hasTape tapeVariant="corner" delay={0.2}>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-lg bg-white/60 flex items-center justify-center border border-neutral-200/80">
-                  <FileText className="w-6 h-6 text-blue-800/70" />
-                </div>
-                <h2 className="font-bold text-xl text-neutral-900">Documents</h2>
-              </div>
-              <p className="font-hand text-lg text-neutral-700 flex-1">
-                Upload docs, get AI summaries and ask questions. Full-text search next.
-              </p>
-              <p className="flex items-center gap-1 text-neutral-600 text-sm mt-2 font-medium">
-                <Sparkles className="w-4 h-4" />
-                Summarize a PDF
-              </p>
-            </Sticker>
-          </Link>
+                <p className="text-neutral-600 text-sm leading-relaxed flex-1 mb-5">
+                  {item.description}
+                </p>
+                <span className="inline-flex items-center gap-2 text-sm font-medium text-neutral-500 group-hover:text-neutral-900 transition-colors">
+                  {item.cta}
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                </span>
+              </Link>
+            );
+          })}
         </div>
 
-        <div className="mt-8 flex justify-center">
-          <Link
-            href="/dashboard/analytics"
-            className="inline-flex items-center gap-2 text-sm font-medium text-neutral-600 hover:text-neutral-900"
-          >
-            View your activity & analytics
-          </Link>
-        </div>
-        <div className="mt-8 pt-8 border-t border-dashed border-neutral-300 max-w-4xl mx-auto">
-          <p className="text-center text-neutral-400 font-hand text-lg">
-            More features on the way — stay tuned.
-          </p>
-        </div>
+        {/* Subtle tip */}
+        <p className="mt-8 text-center text-sm text-neutral-400">
+          Use the nav above to jump to Workspaces, Summarize, or Analytics anytime.
+        </p>
       </div>
     </main>
   );

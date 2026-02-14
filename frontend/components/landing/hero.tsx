@@ -98,14 +98,15 @@ export function Hero() {
                                 <ArrowRight className="ml-2 w-5 h-5" />
                             </Button>
                         )}
-                        <Button
-                            variant="outline"
-                            size="lg"
-                            className="h-14 px-8 text-lg"
-                            onClick={() => document.getElementById("features")?.scrollIntoView({ behavior: "smooth" })}
-                        >
-                            View Demo
-                        </Button>
+                        <Link href="/demo">
+                            <Button
+                                variant="outline"
+                                size="lg"
+                                className="h-14 px-8 text-lg"
+                            >
+                                Try the demo
+                            </Button>
+                        </Link>
                     </div>
                 </motion.div>
             </div>
