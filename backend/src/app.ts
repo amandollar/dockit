@@ -12,6 +12,9 @@ import analyticsRoutes from './routes/analytics.routes';
 
 const app: Express = express();
 
+// Trust first proxy (e.g. Render) so X-Forwarded-For is used for client IP / rate limiting
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet());
 const allowedOrigins = env.CORS_ORIGIN.split(',').map((o) => o.trim()).filter(Boolean);
