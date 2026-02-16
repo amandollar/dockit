@@ -5,6 +5,7 @@ import fileStorageService from './file-storage.service';
 import { getMemberRole } from './workspace.service';
 import { IUser } from '../models/User';
 import { PaginatedResponse } from '../types';
+import logger from '../utils/logger';
 
 export async function uploadDocument(
   workspaceId: string,
@@ -20,14 +21,18 @@ export async function uploadDocument(
 
   const safeName = `${Date.now()}-${originalFilename.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
   const folderPath = `workspaces/${workspaceId}`;
-  const fileBuffer = await fs.readFile(localFilePath);
+  let fileBuffer: Buffer;
+  try {
+    fileBuffer = await fs.readFile(localFilePath);
+  } finally {
+    await fs.unlink(localFilePath).catch(() => {});
+  }
   const result = await fileStorageService.uploadFileBuffer(
     fileBuffer,
     safeName,
     mimeType,
     folderPath
   );
-  await fs.unlink(localFilePath).catch(() => {});
 
   const title = originalFilename.replace(/\.[^.]+$/i, '') || originalFilename;
   const doc = await Document.create({
@@ -105,7 +110,7 @@ export async function updateDocumentSummary(documentId: string, userId: string, 
   const doc = await Document.findById(documentId);
   if (!doc) return false;
   const role = await getMemberRole(doc.workspace.toString(), userId);
-  if (!role) return false;
+  if (!role || (role !== 'admin' && role !== 'editor')) return false;
   doc.summary = summary;
   await doc.save();
   return true;
@@ -116,7 +121,15 @@ export async function removeDocument(documentId: string, userId: string): Promis
   if (!doc) return false;
   const role = await getMemberRole(doc.workspace.toString(), userId);
   if (role !== 'admin' && role !== 'editor') return false;
-  await fileStorageService.deleteFile(doc.filePath, doc.fileId);
+  const filePath = doc.filePath;
+  const fileId = doc.fileId;
+  // Delete from DB first so we never leave an orphaned document record if B2 fails
   await Document.findByIdAndDelete(documentId);
+  try {
+    await fileStorageService.deleteFile(filePath, fileId);
+  } catch (err) {
+    // Log but still return success – doc is already gone; B2 orphan can be cleaned up later
+    logger.error('removeDocument: B2 delete failed after DB delete', { documentId, filePath, err });
+  }
   return true;
 }

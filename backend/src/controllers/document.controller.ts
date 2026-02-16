@@ -165,7 +165,11 @@ export async function summarize(req: Request, res: Response): Promise<void> {
     }
     const text = await extractTextFromBuffer(docMeta.buffer, docMeta.mimeType);
     const summary = await generateSummary(docMeta.title, text);
-    await documentService.updateDocumentSummary(req.params.id, user._id.toString(), summary);
+    const updated = await documentService.updateDocumentSummary(req.params.id, user._id.toString(), summary);
+    if (!updated) {
+      res.status(403).json({ success: false, error: { code: 'FORBIDDEN', message: 'Only editors and admins can save document summaries' } });
+      return;
+    }
     await activityService.recordActivity(user._id.toString());
     res.json({ success: true, data: { summary } });
   } catch (error) {
@@ -195,7 +199,9 @@ export async function ask(req: Request, res: Response): Promise<void> {
     await streamDocumentAnswerToResponse(docMeta.title, text, question, res);
   } catch (error) {
     logger.error('document ask error:', error);
-    res.status(500).json({ success: false, error: { code: 'SERVER_ERROR', message: 'Ask failed' } });
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, error: { code: 'SERVER_ERROR', message: 'Ask failed' } });
+    }
   }
 }
 

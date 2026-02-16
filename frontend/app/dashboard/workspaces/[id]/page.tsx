@@ -53,12 +53,15 @@ export default function WorkspaceDetailPage() {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [summarizingId, setSummarizingId] = useState<string | null>(null);
+  const [summarizeError, setSummarizeError] = useState<string | null>(null);
   const [askDocId, setAskDocId] = useState<string | null>(null);
   const [askQuestion, setAskQuestion] = useState("");
   const [askAnswer, setAskAnswer] = useState<string | null>(null);
   const [askLoading, setAskLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const askDocIdRef = useRef<string | null>(null);
+  askDocIdRef.current = askDocId;
 
   // Members (collaboration)
   const [inviteEmail, setInviteEmail] = useState("");
@@ -139,13 +142,13 @@ export default function WorkspaceDetailPage() {
   const processFiles = useCallback(
     async (files: FileList | null) => {
       if (!files?.length || !id) return;
+      setUploadError(null);
       const accepted = Array.from(files).filter(isAllowedFile);
       if (accepted.length === 0) {
         setUploadError(`Please select documents (${SUPPORTED_TYPES_LABEL}).`);
         return;
       }
       if (accepted.length !== files.length) setUploadError("Some files were skipped (unsupported type).");
-      else setUploadError(null);
       setUploading(true);
       const added: Document[] = [];
       for (let i = 0; i < accepted.length; i++) {
@@ -206,20 +209,26 @@ export default function WorkspaceDetailPage() {
   };
 
   const handleSummarize = async (doc: Document) => {
+    setSummarizeError(null);
     setSummarizingId(doc._id);
     const res = await summarizeDocument(auth, doc._id);
     setSummarizingId(null);
-    if (res.success)
+    if (res.success) {
       setDocuments((prev) => prev.map((d) => (d._id === doc._id ? { ...d, summary: res.data.summary } : d)));
-    else setUploadError(res.error?.message ?? "Summarization failed");
+    } else {
+      setSummarizeError(res.error?.message ?? "Summarization failed");
+    }
   };
 
   const handleAsk = async (docId: string) => {
     if (!askQuestion.trim()) return;
     setAskLoading(true);
     setAskAnswer(null);
+    const requestedDocId = docId;
     const res = await askDocument(auth, docId, askQuestion.trim());
     setAskLoading(false);
+    // Only show answer if user is still viewing the same doc's ask panel (avoid showing A's answer under B)
+    if (askDocIdRef.current !== requestedDocId) return;
     if (res.success) setAskAnswer(res.data.text);
     else setAskAnswer(`Error: ${res.error?.message ?? "Request failed"}`);
   };
@@ -396,7 +405,7 @@ export default function WorkspaceDetailPage() {
                   </form>
                 )}
               </div>
-              {!editing && (
+              {!editing && isAdmin && (
                 <div className="flex gap-2 shrink-0">
                   <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
                     <Pencil className="w-4 h-4 mr-1" />
@@ -607,6 +616,11 @@ export default function WorkspaceDetailPage() {
               {uploadError && (
                 <p className="text-red-600 text-sm rounded-lg bg-red-50/80 px-3 py-2">{uploadError}</p>
               )}
+              {summarizeError && (
+                <p className="text-red-600 text-sm rounded-lg bg-amber-50 border border-amber-200 px-3 py-2">
+                  Summarization: {summarizeError}
+                </p>
+              )}
 
               {docsLoading ? (
                 <div className="flex items-center justify-center gap-2 text-neutral-500 text-sm py-10">
@@ -653,20 +667,22 @@ export default function WorkspaceDetailPage() {
                               </div>
                             </div>
                             <div className="flex items-center gap-0.5 shrink-0">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleSummarize(doc)}
-                                disabled={summarizingId === doc._id}
-                                className="h-8 w-8 p-0 text-violet-600 hover:text-violet-700 hover:bg-violet-50"
-                                title="AI Summarize"
-                              >
-                                {summarizingId === doc._id ? (
-                                  <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : (
-                                  <Sparkles className="w-4 h-4" />
-                                )}
-                              </Button>
+                              {canUpload && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleSummarize(doc)}
+                                  disabled={summarizingId === doc._id}
+                                  className="h-8 w-8 p-0 text-violet-600 hover:text-violet-700 hover:bg-violet-50"
+                                  title="AI Summarize"
+                                >
+                                  {summarizingId === doc._id ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                  ) : (
+                                    <Sparkles className="w-4 h-4" />
+                                  )}
+                                </Button>
+                              )}
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -706,6 +722,7 @@ export default function WorkspaceDetailPage() {
                                 setAskDocId(askDocId === doc._id ? null : doc._id);
                                 setAskQuestion("");
                                 setAskAnswer(null);
+                                setSummarizeError(null);
                               }}
                               className="flex items-center gap-1.5 text-xs font-medium text-violet-600 hover:text-violet-700"
                             >

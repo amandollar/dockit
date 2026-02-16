@@ -31,6 +31,7 @@ export async function generateSummary(documentTitle: string, documentText: strin
 /**
  * Stream an answer to a user question about document content (for useChat-style UX).
  * Pipes the text stream to the provided Node.js ServerResponse.
+ * Errors before streaming starts are caught by the controller (which only sends 500 when headers not yet sent).
  */
 export async function streamDocumentAnswerToResponse(
   documentTitle: string,
@@ -48,4 +49,5 @@ export async function streamDocumentAnswerToResponse(
     maxOutputTokens: 2048,
   });
   result.pipeTextStreamToResponse(res);
+  // Note: pipeTextStreamToResponse is fire-and-forget; controller only sends 500 when !res.headersSent
 }

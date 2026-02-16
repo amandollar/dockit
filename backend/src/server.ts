@@ -1,4 +1,6 @@
 import http from 'http';
+import fs from 'fs/promises';
+import path from 'path';
 import { WebSocketServer } from 'ws';
 import app from './app';
 import env from './config/env';
@@ -9,6 +11,11 @@ import { handleWorkspaceChatUpgrade } from './websocket/workspace-chat';
 const startServer = async (): Promise<void> => {
   try {
     await connectDatabase();
+
+    // Ensure upload directory exists so multer can write temp files
+    const uploadDir = path.resolve(env.UPLOAD_DIR);
+    await fs.mkdir(uploadDir, { recursive: true });
+    logger.info(`Upload directory ready: ${uploadDir}`);
 
     const PORT = parseInt(env.PORT) || 5000;
     const server = http.createServer(app);

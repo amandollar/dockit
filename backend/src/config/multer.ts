@@ -38,11 +38,13 @@ const fileFilter = (_req: Request, file: Express.Multer.File, cb: multer.FileFil
 };
 
 // Multer configuration for document uploads
+const DEFAULT_MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const maxFileSize = parseInt(env.MAX_FILE_SIZE, 10);
 const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: parseInt(env.MAX_FILE_SIZE), // 10MB default
+    fileSize: Number.isNaN(maxFileSize) ? DEFAULT_MAX_FILE_SIZE : maxFileSize,
   },
 });
 
