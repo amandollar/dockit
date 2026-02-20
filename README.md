@@ -4,7 +4,7 @@
 
 DOCIT is an automated document management system with AI-powered summarization, workspace collaboration, and activity analytics.
 
-## Features
+## Features - 
 
 - **Authentication** — Google OAuth and JWT (access + refresh), with 401 retry
 - **Workspaces** — Create workspaces, invite members, manage roles
